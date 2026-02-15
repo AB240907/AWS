@@ -1,262 +1,190 @@
-# Requirements Document
+# Requirements Document: SwasthyaMitra Healthcare Assistant
 
 ## Introduction
 
-CareerPath India is an AI-powered career guidance platform designed specifically for Indian youth. The system provides personalized career recommendations, learning roadmaps with free resources, AI-powered career counseling through a chatbot, and resume/LinkedIn profile building capabilities. The platform supports 13 Indian languages to ensure accessibility across diverse linguistic backgrounds and helps students make informed career decisions based on their education level, interests, location, and aspirations.
-
-The platform consists of a FastAPI backend integrated with Google Gemini AI and a React + TypeScript frontend. It features an intelligent fallback system that uses a comprehensive career pool database (80+ careers) and predefined roadmaps when AI services are unavailable, ensuring continuous service availability.
+SwasthyaMitra is a multilingual AI-powered healthcare assistant designed for Indian citizens, with a focus on rural and Tier-2/3 regions. The system provides personalized health management through lifelong medical history storage, AI-based symptom checking, medicine reminders, prescription management, and healthcare provider discovery. Built on AWS cloud-native architecture with GenAI agents, SwasthyaMitra operates effectively in low-bandwidth environments while providing accessible healthcare guidance in regional languages.
 
 ## Glossary
 
-- **System**: The CareerPath India platform (backend API + frontend web application)
-- **Student**: A user of the platform seeking career guidance
-- **Profile**: A collection of student information including education, interests, location, and career preferences
-- **Career_Suggestion**: A recommended career path with match score, salary expectations, and required skills
-- **Roadmap**: A structured learning path with sequential steps and free resources for a specific career
-- **AI_Engine**: The Google Gemini-powered component that generates career recommendations and responses
-- **Career_Pool**: A database of 80+ careers with metadata for intelligent fallback scoring
-- **Match_Score**: A numerical value (60-96) indicating how well a career aligns with a student's profile
-- **Free_Resource**: A learning material (course, video, article, or government scheme) available at no cost
-- **Chat_Session**: A conversational interaction between a student and the AI career counselor
-- **Resume_Builder**: The component that generates professional resumes and LinkedIn profiles
-- **Excel_Store**: The data persistence layer that saves user information to Excel files
-- **Language**: One of 13 supported Indian languages (English, Hindi, Tamil, Telugu, Bengali, Marathi, Kannada, Malayalam, Gujarati, Punjabi, Odia, Assamese, Urdu)
-- **Stream**: Educational stream (Science PCM, Science PCB, Commerce, Arts/Humanities, Vocational)
-- **Field**: Career category (Technology, Engineering, Business, Healthcare, Creative & Design, etc.)
-- **Pay_Tier**: Salary expectation category (Low: Below ₹6 LPA, Medium: ₹6-15 LPA, High: Above ₹15 LPA)
-- **Education_Rank**: Numeric ranking of education levels (1=10th, 2=12th, 3=Diploma, 4=UG, 5=Graduate, 6=Postgraduate, 7=PhD)
+- **SwasthyaMitra_System**: The complete AI healthcare assistant platform including frontend, backend, and AI components
+- **Patient_User**: An Indian citizen who uses the system to manage their health
+- **Medical_History**: Comprehensive record of diseases, allergies, prescriptions, lab reports, and consultations
+- **AI_Agent**: The Amazon Bedrock-based agent that processes health queries and coordinates responses
+- **Symptom_Checker**: AI component that analyzes symptoms and provides preliminary health guidance
+- **OCR_Processor**: Amazon Textract-based component that extracts text from prescription and report images
+- **Voice_Interface**: Multilingual voice input/output system using Transcribe and Polly
+- **Regional_Language**: Any supported Indian language (Hindi, Tamil, Telugu, Kannada, Bengali, Marathi, etc.)
+- **Drug_Interaction_Checker**: Component that validates medicine compatibility with allergies and existing prescriptions
+- **Medicine_Reminder**: Scheduled notification for medication dosage and timing
+- **Healthcare_Provider**: Doctor, hospital, clinic, or pharmacy registered in the system
+- **Low_Bandwidth_Mode**: Optimized data transmission for areas with limited internet connectivity
 
 ## Requirements
 
-### Requirement 1: Multi-Language Support
+### Requirement 1: Medical History Management
 
-**User Story:** As a student from any Indian state, I want to use the platform in my preferred language, so that I can understand career guidance in my native language.
-
-#### Acceptance Criteria
-
-1. THE System SHALL support 13 Indian languages: English, Hindi, Tamil, Telugu, Bengali, Marathi, Kannada, Malayalam, Gujarati, Punjabi, Odia, Assamese, and Urdu
-2. WHEN a student selects a language, THE System SHALL display all UI text in the selected language
-3. WHEN the AI_Engine generates content, THE System SHALL generate career descriptions, roadmap steps, and chat responses in the student's selected language
-4. THE System SHALL maintain consistent terminology across all language translations
-5. WHEN a student changes language, THE System SHALL persist the language preference throughout the session
-
-### Requirement 2: Student Profile Collection
-
-**User Story:** As a student, I want to provide my educational background and career preferences, so that the system can give me personalized recommendations.
+**User Story:** As a patient, I want to store and access my complete medical history, so that I have a lifelong health record accessible anytime.
 
 #### Acceptance Criteria
 
-1. THE System SHALL collect the student's name, citizenship status, education level, stream/branch, degree, subjects, interests, preferred field, annual pay expectation, and job location
-2. WHEN a student enters profile information, THE System SHALL validate that required fields (name, citizenship, education level, interests, preferred field, pay expectation, location) are provided
-3. THE System SHALL support education levels: 10th Pass, 12th Pass, Diploma, Undergraduate (Pursuing), Graduate, Postgraduate, PhD
-4. THE System SHALL support streams: Science (PCM), Science (PCB), Commerce, Arts/Humanities, Vocational, Not Applicable
-5. THE System SHALL allow students to select multiple interests from a predefined list
-6. THE System SHALL support pay expectations: Below ₹3 LPA, ₹3-₹6 LPA, ₹6-₹10 LPA, ₹10-₹15 LPA, ₹15-₹25 LPA, Above ₹25 LPA, Not Sure
-7. THE System SHALL support major Indian cities and regions as job location preferences
+1. WHEN a Patient_User creates an account, THE SwasthyaMitra_System SHALL create a Medical_History record
+2. THE SwasthyaMitra_System SHALL store diseases, allergies, prescriptions, lab reports, and consultation notes
+3. WHEN a Patient_User adds a medical record, THE SwasthyaMitra_System SHALL timestamp and categorize it automatically
+4. WHEN a Patient_User queries their Medical_History, THE SwasthyaMitra_System SHALL return records filtered by date, category, or keyword
+5. THE SwasthyaMitra_System SHALL encrypt all Medical_History data using AES-256 encryption
 
-### Requirement 3: AI-Powered Career Analysis
+### Requirement 2: Prescription and Report OCR
 
-**User Story:** As a student, I want to receive personalized career suggestions based on my profile, so that I can explore careers that match my background and interests.
+**User Story:** As a patient, I want to upload photos of prescriptions and lab reports to extract and store the information, so that I don't have to manually type medical data.
 
 #### Acceptance Criteria
 
-1. WHEN a student submits their profile, THE System SHALL generate exactly 5 career suggestions
-2. THE AI_Engine SHALL rank careers based on education level, stream alignment, interest overlap, pay expectations, and field preferences
-3. THE System SHALL NOT suggest careers requiring higher education than the student possesses
-4. WHEN a student has Science (PCB) stream, THE System SHALL prioritize healthcare and biology-related careers over pure engineering careers
-5. WHEN a student has Science (PCM) stream, THE System SHALL prioritize technology and engineering careers over medical careers
-6. THE System SHALL ensure career suggestions span at least 2-3 different fields for diversity
-7. FOR ALL career suggestions, THE System SHALL provide a match score between 60 and 96
-8. FOR ALL career suggestions, THE System SHALL include title, description, expected salary in Indian Rupees (LPA), required skills list, and field category
-9. THE System SHALL apply stream mismatch penalties to careers that don't align with the student's educational stream
-10. WHEN the AI_Engine is unavailable, THE System SHALL use a fallback scoring algorithm based on the career pool database
-11. THE fallback scoring algorithm SHALL use weighted multi-signal scoring with field match (15 pts), stream alignment (30 pts with -15 penalty for mismatch), interest overlap via Jaccard similarity (30 pts), education fit (10 pts), pay tier match (10 pts), and degree keyword bonus (5 pts)
-12. THE System SHALL expand user interests into semantic tags using the INTEREST_TAGS mapping
-13. THE System SHALL inject stream-derived tags using STREAM_INTEREST_BOOST for implicit matching
-14. THE System SHALL apply diversity bonus (5 pts) to careers from underrepresented fields in the result set
-15. THE System SHALL limit careers from the same field to maximum 3 out of 5 suggestions
-16. THE System SHALL normalize raw scores into the 60-96 range for consistent match score presentation
+1. WHEN a Patient_User uploads a prescription image, THE OCR_Processor SHALL extract medicine names, dosages, and doctor information within 10 seconds
+2. WHEN a Patient_User uploads a lab report image, THE OCR_Processor SHALL extract test names, values, and reference ranges
+3. WHEN OCR extraction is complete, THE SwasthyaMitra_System SHALL add the extracted data to the Patient_User's Medical_History
+4. WHEN the image quality is insufficient for OCR, THE SwasthyaMitra_System SHALL request a clearer image with guidance
+5. WHERE Low_Bandwidth_Mode is active, THE SwasthyaMitra_System SHALL compress images before upload while maintaining OCR quality
 
-### Requirement 4: Learning Roadmap Generation
+### Requirement 3: AI-Based Symptom Checking
 
-**User Story:** As a student, I want to see a detailed learning roadmap for my chosen career, so that I know what steps to take and what free resources are available.
+**User Story:** As a patient experiencing symptoms, I want to describe them to get preliminary health guidance, so that I can understand the potential severity and next steps.
 
 #### Acceptance Criteria
 
-1. WHEN a student selects a career, THE System SHALL generate a learning roadmap with 5-7 sequential steps
-2. FOR ALL roadmap steps, THE System SHALL include step number, title, description, duration estimate, and 2-4 free resources
-3. THE System SHALL prioritize Indian government platforms (NPTEL, SWAYAM, PMKVY, Skill India) in resource recommendations
-4. THE System SHALL include resources from YouTube, freeCodeCamp, Khan Academy, and free audit courses from Coursera/edX
-5. FOR ALL resources, THE System SHALL provide name, actual URL, platform name, and resource type (course/video/article/scheme)
-6. THE System SHALL calculate and display total duration for completing the entire roadmap
-7. WHEN a specific career has a predefined roadmap in the career_resources database, THE System SHALL use that roadmap
-8. WHEN no predefined roadmap exists, THE AI_Engine SHALL generate a custom roadmap
-9. THE System SHALL ensure all recommended resources are genuinely free and accessible in India
-10. THE System SHALL support fuzzy matching for career titles when looking up predefined roadmaps (case-insensitive substring matching)
-11. WHEN using predefined roadmaps, THE System SHALL calculate total duration by summing step durations and converting to appropriate units (weeks or months)
-12. WHEN AI is unavailable and no predefined roadmap exists, THE System SHALL generate a generic 3-step fallback roadmap with government resources
+1. WHEN a Patient_User describes symptoms, THE Symptom_Checker SHALL analyze them and provide possible conditions with confidence levels
+2. THE Symptom_Checker SHALL ask follow-up questions to narrow down potential conditions
+3. WHEN serious symptoms are detected, THE SwasthyaMitra_System SHALL recommend immediate medical attention
+4. THE Symptom_Checker SHALL provide general health advice and home remedies for minor conditions
+5. THE SwasthyaMitra_System SHALL include a disclaimer that AI guidance does not replace professional medical diagnosis
 
-### Requirement 5: AI Career Counseling Chatbot
+### Requirement 4: Multilingual Voice and Text Interaction
 
-**User Story:** As a student, I want to chat with an AI counselor about my career questions, so that I can get personalized advice and clarifications.
+**User Story:** As a patient who may not be literate in English, I want to interact with the system using voice or text in my regional language, so that I can easily access health information.
 
 #### Acceptance Criteria
 
-1. THE System SHALL provide a chat interface accessible from any page in the application
-2. WHEN a student sends a message, THE AI_Engine SHALL respond in the student's selected language
-3. THE System SHALL maintain conversation history within a chat session
-4. THE AI_Engine SHALL provide advice specific to the Indian education system, entrance exams (JEE, NEET, CAT, UPSC), and job market
-5. THE AI_Engine SHALL recommend free learning resources available in India
-6. THE AI_Engine SHALL maintain a friendly, encouraging, and supportive tone like a helpful older sibling
-7. THE System SHALL pass student profile context to the AI_Engine for personalized responses
-8. WHEN the AI_Engine is unavailable, THE System SHALL provide predefined responses for common topics (identity, greetings, salary, resources, exams)
-9. THE System SHALL limit responses to 2-4 short paragraphs for readability
-10. THE AI_Engine SHALL use bullet points or numbered lists when presenting multiple options
-11. THE System SHALL convert chat history to Gemini-compatible format (using "user" and "model" roles)
-12. THE AI_Engine SHALL use system instructions to define personality, expertise, and response rules
-13. THE System SHALL support multi-turn conversations by maintaining and passing conversation history
-14. THE fallback responses SHALL handle identity questions, greetings, salary inquiries, resource requests, and exam guidance
+1. THE Voice_Interface SHALL support input and output in at least 6 Regional_Languages (Hindi, Tamil, Telugu, Kannada, Bengali, Marathi)
+2. WHEN a Patient_User speaks a health query, THE Voice_Interface SHALL transcribe it to text with at least 85% accuracy
+3. WHEN the AI_Agent generates a response, THE Voice_Interface SHALL convert it to speech in the Patient_User's chosen Regional_Language
+4. WHEN a Patient_User types a query in a Regional_Language, THE SwasthyaMitra_System SHALL process and respond in the same language
+5. THE SwasthyaMitra_System SHALL allow Patient_Users to switch between voice and text input modes at any time
 
-### Requirement 6: Resume and LinkedIn Profile Builder
+### Requirement 5: Medicine Reminders and Dosage Tracking
 
-**User Story:** As a student, I want to generate a professional resume and LinkedIn profile, so that I can apply for jobs effectively.
+**User Story:** As a patient taking multiple medications, I want to receive reminders for medicine dosages and schedules, so that I don't miss or confuse my medications.
 
 #### Acceptance Criteria
 
-1. THE System SHALL collect work experience, school education, college education, projects, and skills from the student
-2. FOR ALL experience entries, THE System SHALL capture title, company, duration, and description
-3. FOR ALL school education entries, THE System SHALL capture class level (10th/12th), board, school name, percentage, and year
-4. FOR ALL college education entries, THE System SHALL capture degree, stream, college name, CGPA/percentage, and year
-5. FOR ALL project entries, THE System SHALL capture title, role, description, and technologies used
-6. WHEN a student submits resume information, THE AI_Engine SHALL generate a professional ATS-friendly resume in Markdown format
-7. WHEN a student submits resume information, THE AI_Engine SHALL generate an optimized LinkedIn profile with headline and About section in Markdown format
-8. THE System SHALL include a professional summary in the generated resume
-9. THE System SHALL suggest 5 top skills to pin on LinkedIn
-10. THE System SHALL format the resume with proper section headers (Professional Summary, Education, Experience, Projects, Skills)
-11. WHEN the AI_Engine is unavailable, THE System SHALL generate a basic template resume with the provided information
-12. THE LinkedIn profile SHALL include a catchy headline and first-person "About" section
-13. THE System SHALL use ## for section headers in the resume markdown
-14. THE System SHALL parse AI responses that may contain JSON in markdown code blocks
-15. THE resume builder SHALL be accessible from the language selection page and from the results page
+1. WHEN a prescription is added to Medical_History, THE SwasthyaMitra_System SHALL automatically create Medicine_Reminders based on dosage schedule
+2. WHEN a Medicine_Reminder time arrives, THE SwasthyaMitra_System SHALL send a push notification with medicine name and dosage
+3. WHEN a Patient_User marks a dose as taken, THE SwasthyaMitra_System SHALL log it in the medication adherence record
+4. THE SwasthyaMitra_System SHALL alert the Patient_User when a prescription is about to expire or run out
+5. WHEN a Patient_User misses multiple doses, THE SwasthyaMitra_System SHALL send an adherence reminder
 
-### Requirement 7: User Data Persistence
+### Requirement 6: Drug-Allergy Interaction Checking
 
-**User Story:** As a platform administrator, I want to save user data for analytics and improvement, so that we can understand user needs and improve the platform.
+**User Story:** As a patient with allergies, I want the system to check if new medicines conflict with my allergies or existing prescriptions, so that I can avoid dangerous drug interactions.
 
 #### Acceptance Criteria
 
-1. WHEN a student completes career analysis, THE System SHALL save their data to an Excel file
-2. THE Excel_Store SHALL capture timestamp, name, language, career paths, interests, degree, and location
-3. THE System SHALL create the Excel file with headers if it doesn't exist
-4. THE System SHALL append new user data as rows in the Excel file
-5. THE System SHALL format the Excel header row with bold text
-6. THE System SHALL handle missing optional fields by storing "Not specified"
-7. THE System SHALL store career paths and interests as comma-separated values
+1. WHEN a new medicine is added, THE Drug_Interaction_Checker SHALL compare it against the Patient_User's allergy list
+2. WHEN a drug-allergy conflict is detected, THE SwasthyaMitra_System SHALL alert the Patient_User immediately with severity level
+3. THE Drug_Interaction_Checker SHALL check for interactions between the new medicine and existing prescriptions
+4. WHEN a dangerous interaction is found, THE SwasthyaMitra_System SHALL recommend consulting a doctor before taking the medicine
+5. THE SwasthyaMitra_System SHALL maintain an updated drug interaction database
 
-### Requirement 8: API Health Monitoring
+### Requirement 7: Healthcare Provider Discovery
 
-**User Story:** As a developer, I want to check the API health and AI availability, so that I can monitor system status.
+**User Story:** As a patient needing medical care, I want to find nearby doctors, hospitals, and pharmacies, so that I can access healthcare services quickly.
 
 #### Acceptance Criteria
 
-1. THE System SHALL provide a health check endpoint at /api/health
-2. WHEN the health endpoint is called, THE System SHALL return status "ok" and a message
-3. THE System SHALL indicate whether the Gemini AI engine is available or unavailable
-4. THE System SHALL respond to health checks within 1 second
+1. WHEN a Patient_User searches for Healthcare_Providers, THE SwasthyaMitra_System SHALL return results within 10km of their location
+2. THE SwasthyaMitra_System SHALL display Healthcare_Provider name, specialty, distance, ratings, and contact information
+3. WHEN searching for pharmacies, THE SwasthyaMitra_System SHALL show which ones have the Patient_User's required medicines in stock
+4. THE SwasthyaMitra_System SHALL provide directions to the selected Healthcare_Provider
+5. WHEN a Patient_User filters by specialty, THE SwasthyaMitra_System SHALL return only Healthcare_Providers matching that specialty
 
-### Requirement 9: Career Pool Database
+### Requirement 8: Appointment Booking
 
-**User Story:** As the system, I want to maintain a comprehensive career database, so that I can provide accurate fallback recommendations when AI is unavailable.
-
-#### Acceptance Criteria
-
-1. THE System SHALL maintain a career pool with at least 80 diverse career options
-2. FOR ALL careers in the pool, THE System SHALL store title, description, salary range, required skills, field, tags, compatible streams, minimum education level, and pay tier
-3. THE System SHALL categorize careers into fields: Technology, Engineering, Business, Healthcare, Creative & Design, Education, Government Services, Law, Agriculture, Media & Communication, Science & Research, Hospitality & Tourism, Sports & Fitness, Skilled Trades
-4. THE System SHALL map education levels to numeric ranks (1=10th, 2=12th, 3=Diploma, 4=UG, 5=Graduate, 6=Postgraduate, 7=PhD)
-5. THE System SHALL map pay expectations to tiers (1=Low: Below ₹6 LPA, 2=Medium: ₹6-15 LPA, 3=High: Above ₹15 LPA)
-6. THE System SHALL maintain interest-to-tag mappings for semantic matching (INTEREST_TAGS)
-7. THE System SHALL maintain stream-to-interest boost mappings for implicit matching (STREAM_INTEREST_BOOST)
-8. THE Career_Pool SHALL include careers spanning all education levels from 10th pass to PhD
-9. THE Career_Pool SHALL include careers from all major streams (PCM, PCB, Commerce, Arts, Vocational)
-10. THE Career_Pool SHALL include salary ranges in Indian Rupees (LPA format)
-11. THE Career_Pool SHALL include 3-5 required skills for each career
-12. THE Career_Pool SHALL include semantic tags for intelligent interest matching
-13. THE INTEREST_TAGS mapping SHALL cover at least 15 common interest categories
-14. THE STREAM_INTEREST_BOOST mapping SHALL inject 5-7 relevant tags per stream
-
-### Requirement 9A: Career Resources Database
-
-**User Story:** As the system, I want to maintain predefined learning roadmaps for popular careers, so that I can provide high-quality curated resources even when AI is unavailable.
+**User Story:** As a patient, I want to book appointments with doctors through the system, so that I can schedule consultations conveniently.
 
 #### Acceptance Criteria
 
-1. THE System SHALL maintain a career resources database with predefined roadmaps for popular careers
-2. FOR ALL predefined roadmaps, THE System SHALL include 5-7 sequential learning steps
-3. FOR ALL roadmap steps, THE System SHALL include step number, title, description, duration, and 2-4 free resources
-4. FOR ALL resources, THE System SHALL include actual working URLs to free learning platforms
-5. THE System SHALL prioritize Indian government platforms (NPTEL, SWAYAM, PMKVY, Skill India) in predefined roadmaps
-6. THE System SHALL include YouTube playlists from reputable educators (CodeWithHarry, Apna College, Krish Naik, freeCodeCamp, etc.)
-7. THE System SHALL include resources from freeCodeCamp, Khan Academy, Coursera (audit mode), and other free platforms
-8. THE predefined roadmaps SHALL cover high-demand careers (Software Developer, Data Scientist, Cybersecurity Analyst, AI/ML Engineer, etc.)
-9. THE System SHALL provide helper functions (_r, _step) for consistent roadmap data structure
-10. THE System SHALL organize resources by type (course, video, article, scheme)
+1. WHEN a Patient_User selects a Healthcare_Provider, THE SwasthyaMitra_System SHALL display available appointment slots
+2. WHEN a Patient_User books an appointment, THE SwasthyaMitra_System SHALL send confirmation to both patient and Healthcare_Provider
+3. THE SwasthyaMitra_System SHALL send appointment reminders 24 hours and 1 hour before the scheduled time
+4. WHEN a Patient_User cancels an appointment, THE SwasthyaMitra_System SHALL notify the Healthcare_Provider and update availability
+5. THE SwasthyaMitra_System SHALL allow rescheduling appointments based on Healthcare_Provider availability
 
-### Requirement 10: Error Handling and Fallback
+### Requirement 9: Health Question Answering
 
-**User Story:** As a student, I want the system to work even when AI services are unavailable, so that I can still get career guidance.
+**User Story:** As a patient with health questions, I want to ask the AI agent about medical topics, so that I can learn about health conditions, treatments, and preventive care.
 
 #### Acceptance Criteria
 
-1. WHEN the Gemini API is unavailable, THE System SHALL use the career pool database for recommendations
-2. WHEN the Gemini API is unavailable, THE System SHALL use predefined roadmaps from the career resources database
-3. WHEN the Gemini API is unavailable, THE System SHALL provide predefined chat responses for common questions
-4. WHEN the Gemini API is unavailable, THE System SHALL generate basic template resumes
-5. THE System SHALL log AI availability status at startup
-6. WHEN API calls fail, THE System SHALL return HTTP 500 with error details
-7. THE System SHALL handle JSON parsing errors when extracting AI responses from markdown code blocks
-8. THE System SHALL attempt direct JSON parsing first, then extract from code blocks, then search for JSON patterns
-9. THE System SHALL try multiple regex patterns to extract JSON from AI responses (code blocks, arrays, objects)
-10. THE System SHALL gracefully degrade to fallback functionality without exposing errors to users
-11. THE System SHALL check for GEMINI_API_KEY environment variable before initializing AI
-12. THE System SHALL set gemini_available flag based on successful SDK initialization
-13. THE System SHALL print clear build-time messages indicating AI availability status
+1. WHEN a Patient_User asks a health question, THE AI_Agent SHALL provide evidence-based answers with source citations
+2. THE AI_Agent SHALL personalize responses based on the Patient_User's Medical_History when relevant
+3. WHEN the AI_Agent lacks sufficient information, THE SwasthyaMitra_System SHALL recommend consulting a healthcare professional
+4. THE AI_Agent SHALL provide information about disease prevention, healthy lifestyle, and wellness
+5. THE SwasthyaMitra_System SHALL maintain conversation context across multiple related questions
 
-### Requirement 11: CORS and Security
+### Requirement 10: Low-Bandwidth Optimization
 
-**User Story:** As a developer, I want the API to be accessible from the frontend, so that the application works correctly.
+**User Story:** As a patient in a rural area with limited internet connectivity, I want the system to work efficiently on slow networks, so that I can access health information without frustration.
 
 #### Acceptance Criteria
 
-1. THE System SHALL enable CORS to allow requests from any origin during development
-2. THE System SHALL accept credentials in cross-origin requests
-3. THE System SHALL allow all HTTP methods and headers in CORS configuration
-4. THE System SHALL load the Gemini API key from environment variables
-5. THE System SHALL NOT expose the API key in responses or logs
+1. WHERE Low_Bandwidth_Mode is active, THE SwasthyaMitra_System SHALL reduce data transfer by at least 60% compared to normal mode
+2. THE SwasthyaMitra_System SHALL cache frequently accessed information locally on the Patient_User's device
+3. WHEN network connectivity is poor, THE SwasthyaMitra_System SHALL prioritize text responses over voice responses
+4. THE SwasthyaMitra_System SHALL compress all images to under 200KB before transmission in Low_Bandwidth_Mode
+5. WHEN offline, THE SwasthyaMitra_System SHALL queue user queries and process them when connectivity is restored
 
-### Requirement 12: Frontend User Experience
+### Requirement 11: User Authentication and Data Security
 
-**User Story:** As a student, I want an intuitive and visually appealing interface, so that I can easily navigate the platform.
+**User Story:** As a patient, I want my medical data to be secure and private, so that my sensitive health information is protected.
 
 #### Acceptance Criteria
 
-1. THE System SHALL provide a single-page application with step-based navigation
-2. THE System SHALL support navigation steps: language selection, profile form, results, roadmap, resume form, resume view
-3. THE System SHALL display a "Start Over" button to reset the application state
-4. THE System SHALL show loading indicators during API calls
-5. THE System SHALL display error messages in a dismissible banner
-6. THE System SHALL show career cards with match scores, salary, skills, and action buttons
-7. THE System SHALL format roadmap steps with duration, description, and clickable resource links
-8. THE System SHALL provide a floating chat panel accessible from any page
-9. THE System SHALL display the chat panel as expandable/collapsible
-10. THE System SHALL render resume and LinkedIn profile content in Markdown format
-11. THE System SHALL display the brand name "CareerPath India 🇮🇳" in the header
-12. THE System SHALL make the brand name clickable to trigger "Start Over" functionality
-13. THE System SHALL show a "Build Your Resume" button on the language selection page
-14. THE System SHALL show a "Build Your Resume" button on the results page after career suggestions
-15. THE System SHALL maintain language preference across all steps
-16. THE System SHALL use translations for all UI text based on selected language
-17. THE System SHALL save user data to Excel automatically after career analysis
-18. THE System SHALL handle API errors gracefully with user-friendly error messages
-19. THE System SHALL show loading overlay with spinner and message during AI analysis
-20. THE System SHALL organize career results in a grid layout
+1. WHEN a Patient_User registers, THE SwasthyaMitra_System SHALL authenticate using phone number OTP verification
+2. THE SwasthyaMitra_System SHALL encrypt all data in transit using TLS 1.3
+3. THE SwasthyaMitra_System SHALL encrypt all stored medical data using AES-256 encryption
+4. THE SwasthyaMitra_System SHALL implement role-based access control using AWS IAM
+5. WHEN a Patient_User requests data deletion, THE SwasthyaMitra_System SHALL remove all personal data within 30 days
+
+### Requirement 12: Scalability and Performance
+
+**User Story:** As a system administrator, I want the platform to scale automatically during peak usage, so that all patients receive consistent service quality.
+
+#### Acceptance Criteria
+
+1. THE SwasthyaMitra_System SHALL handle at least 100,000 concurrent users without performance degradation
+2. WHEN request volume increases by 200%, THE SwasthyaMitra_System SHALL auto-scale backend resources within 2 minutes
+3. THE SwasthyaMitra_System SHALL respond to text queries within 3 seconds under normal load
+4. THE OCR_Processor SHALL process prescription images with 95th percentile latency under 10 seconds
+5. THE SwasthyaMitra_System SHALL maintain 99.5% uptime
+
+### Requirement 13: AI Agent Reasoning and Tool Integration
+
+**User Story:** As a patient asking complex health questions, I want the AI agent to reason through my query and use appropriate tools, so that I receive accurate and comprehensive answers.
+
+#### Acceptance Criteria
+
+1. WHEN a Patient_User asks a multi-part question, THE AI_Agent SHALL decompose it into sub-queries and coordinate responses
+2. THE AI_Agent SHALL have access to tools for medical history retrieval, symptom checking, drug interaction checking, and provider search
+3. WHEN the AI_Agent lacks information to answer a query, THE SwasthyaMitra_System SHALL request clarification from the Patient_User
+4. THE AI_Agent SHALL cite medical sources for health information (research papers, medical guidelines, WHO/CDC resources)
+5. WHEN multiple tools are needed, THE AI_Agent SHALL orchestrate tool calls in the correct sequence to build a complete response
+
+### Requirement 14: Wearable Device Integration (Optional)
+
+**User Story:** As a patient using health wearables, I want to integrate device data with my medical history, so that I have comprehensive health tracking.
+
+#### Acceptance Criteria
+
+1. WHEN a wearable device connects to AWS IoT Core, THE SwasthyaMitra_System SHALL register and authenticate the device
+2. THE SwasthyaMitra_System SHALL collect and store vital signs data (heart rate, blood pressure, blood glucose, steps) from wearables
+3. WHEN vital signs exceed normal ranges, THE SwasthyaMitra_System SHALL alert the Patient_User
+4. THE AI_Agent SHALL incorporate wearable data into health assessments and recommendations
+5. THE SwasthyaMitra_System SHALL generate health trend reports based on wearable data
